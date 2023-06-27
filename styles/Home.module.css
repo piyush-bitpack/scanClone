@@ -1,0 +1,45 @@
+.card {
+  position: relative;
+  display: -ms-flexbox;
+  display: flex;
+  -ms-flex-direction: column;
+  flex-direction: column;
+  min-width: 0;
+  word-wrap: break-word;
+  background-color: #fff;
+  background-clip: border-box;
+  border: 1px solid rgba(0, 0, 0, .125);
+  border-radius: .25rem;
+}
+
+.cardHeader:first-child {
+  border-radius: calc(0.25rem - 1px) calc(0.25rem - 1px) 0 0;
+}
+
+.cardHeader {
+  padding: .75rem 1.25rem;
+  margin-bottom: 0;
+  background-color: rgba(0, 0, 0, .03);
+  border-bottom: 1px solid rgba(0, 0, 0, .125);
+  display: flex;
+  justify-content: space-between;
+}
+
+.cardContent {
+  max-height: 0px;
+  -webkit-transition: all 0.5s ease;
+  transition: all 0.5s ease;
+}
+
+.hide {
+  display: none;
+}
+
+/* #accordion[data-open="true"] ~ .cardContent {  
+  max-height: 150px;
+} */
+
+/* .cardContent[data-open="true"] {
+  max-height: 500px;
+  transition: all 0.5s ease;
+} */
