@@ -107,11 +107,11 @@ const ReadWriteContract = (): JSX.Element => {
               setProxyContractAbi(filteredABI);
             }
           }
+          setFetchedAbi(true);
         } else {
           setError(data.result);
         }
       }
-      setFetchedAbi(true);
     } catch (e) {
       console.log(e);
     }
