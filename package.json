@@ -17,6 +17,7 @@
     "react-dom": "^18.2.0",
     "viem": "~1.0.6",
     "wagmi": "~1.2.0",
+    "web3": "^4.0.2",
     "yarn": "^1.22.19"
   },
   "devDependencies": {

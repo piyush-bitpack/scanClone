@@ -1,6 +1,7 @@
-import React, { useCallback, useState } from "react";
+import React, { useState } from "react";
 import accordionStyles from "../styles/Home.module.css";
 import { readContract, writeContract } from "@wagmi/core";
+import { polygon, polygonMumbai } from "@wagmi/core/chains";
 import { abiItem } from "./ReadWriteContract";
 import { isEmpty } from "lodash";
 import { formatEther } from "viem";
@@ -19,6 +20,7 @@ type AccordionProps = {
   contractAddress: `0x${string}`;
   abi: Array<abiItem>;
   isConnected: boolean;
+  selectedChain: string
 };
 
 const Accordion = ({
@@ -29,6 +31,7 @@ const Accordion = ({
   outputs,
   inputs,
   isConnected,
+  selectedChain
 }: AccordionProps): JSX.Element => {
   const [isOpen, setOpen] = useState<Boolean>(false);
   const [output, setOutput] = useState<BigInt | any>(null);
@@ -59,6 +62,10 @@ const Accordion = ({
           abi: abi,
           functionName: functionName,
           args: arguements,
+          chainId:
+            selectedChain === "Polygon Mumbai"
+              ? polygonMumbai.id
+              : polygon.id,
         });
         const convertedRate =
           typeof rate === "bigint" ? formatEther(rate) : rate;
@@ -71,9 +78,9 @@ const Accordion = ({
           args: arguements,
         });
         const url =
-      process.env.NEXT_PUBLIC_ENVIRONMENT === "testnet"
-        ? `https://mumbai.polygonscan.com/tx/${hash}`
-        : `https://polygonscan.com/tx/${hash}`;
+          process.env.NEXT_PUBLIC_ENVIRONMENT === "testnet"
+            ? `https://mumbai.polygonscan.com/tx/${hash}`
+            : `https://polygonscan.com/tx/${hash}`;
         setOutput(url);
       }
       setError(null);
@@ -82,13 +89,6 @@ const Accordion = ({
       setOutput(null);
     }
   };
-
-  // const handleRedirect = useCallback(() => {
-  //   const url =
-  //     process.env.NEXT_PUBLIC_ENVIRONMENT === "testnet"
-  //       ? `https://mumbai.polygonscan.com/tx/${output}`
-  //       : `https://polygonscan.com/tx/${output}`;
-  // }, [output]);
 
   return (
     <div className={`${accordionStyles.card} shadow-none my-3`}>
@@ -155,26 +155,21 @@ const Accordion = ({
           >
             Execute
           </button>
-          {output !== null && type === 'write' && (
-              <button
-              className="ml-[10px] text-white mt-2 disabled:bg-blue-400 bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2"
-              >
-              <a
-                href={output}
-                target="_blank"
-              >
+          {output !== null && type === "write" && (
+            <button className="ml-[10px] text-white mt-2 disabled:bg-blue-400 bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2">
+              <a href={output} target="_blank">
                 View Transaction
               </a>
-              </button>
-            )}
+            </button>
+          )}
         </div>
-        {output !== null && type === "read" &&  (
+        {output !== null && type === "read" && (
           <div className="p-3 pt-1 border">
-                <label>Response of method</label>
-                <br />
-                <span>
-                  {output} {outputs[0].type}
-                </span>
+            <label>Response of method</label>
+            <br />
+            <span>
+              {output} {outputs[0].type}
+            </span>
           </div>
         )}
         {error !== null && (
