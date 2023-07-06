@@ -1,15 +1,15 @@
-import type { NextPage } from 'next';
-import ReadWriteContract from '../components/ReadWriteContract'
+import type { NextPage } from "next";
+import ReadWriteContract from "../components/ReadWriteContract";
+import Header from "../components/Header";
 
 const Home: NextPage = () => {
   return (
-      <div>
-      <h1 className="shadow-md flex items-center space-x-4 p-4 m-4">
-        Read/Write Features
-      </h1>
-      <ReadWriteContract />
+    <div className="flex justify-center max-lg:pl-[60px]">
+      <div className="xl:w-[60%]">
+        <Header />
+        <ReadWriteContract />
+      </div>
     </div>
-
   );
 };
 

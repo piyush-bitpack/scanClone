@@ -24,8 +24,9 @@ SearchFormProps): JSX.Element => {
       </label>
       <div className="relative flex w-full">
         <select onChange={(e) => setSelectedChain(e.target.value)} value={selectedChain} className="text-sm text-gray-900 p-4 border border-gray-300 rounded-s-lg bg-gray-50 foucs:outline-none focus:ring-blue-500 focus:border-blue-500">
-          <option className="p-3">Polygon</option>
-          <option className="p-3">Polygon Mumbai</option>
+          <option className="p-3" value='Polygon'>Polygon</option>
+          {/* <option className="p-3" value='Polygon Mumbai'>Polygon Mumbai</option> */}
+          <option className="p-3" value='Ethereum'>Ethereum</option>
         </select>
         <input
           type="search"

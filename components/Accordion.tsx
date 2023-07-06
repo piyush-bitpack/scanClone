@@ -2,10 +2,11 @@ import React, { useState } from "react";
 import humanizeString from 'humanize-string';
 import accordionStyles from "../styles/Home.module.css";
 import { readContract, writeContract } from "@wagmi/core";
-import { polygon, polygonMumbai } from "@wagmi/core/chains";
+import { polygon, polygonMumbai, mainnet } from "@wagmi/core/chains";
 import { abiItem } from "./ReadWriteContract";
 import { isEmpty } from "lodash";
 import { utils } from "web3";
+import { parseGwei } from "viem";
 
 type InputOutputType = {
   internalType?: string;
@@ -23,6 +24,7 @@ type AccordionProps = {
   isConnected: boolean;
   selectedChain: string
   isProxy?: boolean
+  stateMutability?: string
 };
 
 const Accordion = ({
@@ -34,11 +36,13 @@ const Accordion = ({
   inputs,
   isConnected,
   selectedChain,
-  isProxy
+  isProxy,
+  stateMutability
 }: AccordionProps): JSX.Element => {
   const [isOpen, setOpen] = useState<Boolean>(false);
   const [output, setOutput] = useState<BigInt | any>(null);
   const [values, setValues] = useState<{ [key: string]: any }>({});
+  const [payableAmount, setPayableAmount] = useState<any>('');
   const [error, setError] = useState(null);
 
   const toggle = () => {
@@ -65,10 +69,10 @@ const Accordion = ({
           abi: abi,
           functionName: functionName,
           args: arguements,
-          chainId:
-            selectedChain === "Polygon Mumbai"
-              ? polygonMumbai.id
-              : polygon.id,
+          chainId: selectedChain === 'Ethereum' ? mainnet.id : polygon.id
+            // selectedChain === "Polygon Mumbai"
+            //   ? polygonMumbai.id
+            //   : (selectedChain === 'Ethereum' ? mainnet.id : polygon.id),
         });
         const convertedRate =
           typeof rate === "bigint" ? rate.toString() : (outputs[0].type === 'bytes' ? utils.hexToAscii(rate) : rate);
@@ -79,11 +83,11 @@ const Accordion = ({
           abi: abi,
           functionName: functionName,
           args: arguements,
+          value: stateMutability === 'payable' ? parseGwei(payableAmount) : undefined
         });
-        const url =
-          process.env.NEXT_PUBLIC_ENVIRONMENT === "testnet"
-            ? `https://mumbai.polygonscan.com/tx/${hash}`
-            : `https://polygonscan.com/tx/${hash}`;
+        const url = selectedChain === 'Ethereum' ? `https://etherscan.io/tx/${hash}` : `https://polygonscan.com/tx/${hash}`
+        // "Polygon Mumbai"
+        //     ? `https://mumbai.polygonscan.com/tx/${hash}` : ();
         setOutput(url);
       }
       setError(null);
@@ -137,6 +141,19 @@ const Accordion = ({
         }`}
       >
         <div className="p-3">
+          {stateMutability === 'payable' && (
+            <>
+            <label>{humanizeString(functionName)}</label>
+            <input
+              type="text"
+              className="block w-full mb-[5px] p-[5px] text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500"
+              placeholder={`payable Amount (${selectedChain === 'Ethereum' ? 'Eth' : 'matic'})`}
+              onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                setPayableAmount(event);
+              }}
+            />
+          </>
+          )}
           {inputs.length > 0 &&
             inputs.map((item) => (
               <>

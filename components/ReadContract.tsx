@@ -17,9 +17,9 @@ const ReadContract = ({
   selectedChain,
   isProxy
 }: ReadContractProps): JSX.Element => {
-  const readABI = abi.filter((item) => item.stateMutability === "view" && item.inputs.length > 0);
+  const readABI = abi.filter((item) => (item.stateMutability === "view" || item.stateMutability === "pure") && item.inputs.length > 0);
   return (
-    <div className="p-4 pt-0 mx-4">
+    <div className="p-4 py-0 mx-4">
       {readABI.length > 0 ? (
         readABI.map((item, index) => {
           return (

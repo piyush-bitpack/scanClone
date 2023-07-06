@@ -20,11 +20,11 @@ function parseCode(code) {
 export async function getOnlyOwnerFunctions(address, selectedChain) {
   const contractAddress = address;
   let ownerFunctions = [];
-  const key = process.env.NEXT_PUBLIC_POLYGON_SCAN_API_KEY;
-        const baseUrl =
-          selectedChain === "Polygon Mumbai"
-            ? process.env.NEXT_PUBLIC_POLYGON_SCAN_BASE_URL_TESTNET
-            : process.env.NEXT_PUBLIC_POLYGON_SCAN_BASE_URL;
+  const key = selectedChain === 'Ethereum' ? process.env.NEXT_PUBLIC_ETHER_SCAN_API_KEY : process.env.NEXT_PUBLIC_POLYGON_SCAN_API_KEY;
+        const baseUrl = selectedChain === 'Ethereum' ? process.env.NEXT_PUBLIC_ETHER_SCAN_BASE_URL : process.env.NEXT_PUBLIC_POLYGON_SCAN_BASE_URL
+          // selectedChain === "Polygon Mumbai"
+          //   ? process.env.NEXT_PUBLIC_POLYGON_SCAN_BASE_URL_TESTNET
+          //   : (selectedChain === 'Ethereum' ? process.env.NEXT_PUBLIC_ETHER_SCAN_BASE_URL : process.env.NEXT_PUBLIC_POLYGON_SCAN_BASE_URL);
   const response = await fetch(
     `${baseUrl}?module=contract&action=getsourcecode&address=${contractAddress}&apikey=${key}`
   );

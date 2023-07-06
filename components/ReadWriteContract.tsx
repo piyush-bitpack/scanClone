@@ -1,9 +1,10 @@
 import React, { useState, ChangeEvent, useEffect } from "react";
 import { getNetwork, switchNetwork } from "@wagmi/core";
-import { polygon, polygonMumbai } from "@wagmi/core/chains";
+import { polygon, polygonMumbai, mainnet } from "@wagmi/core/chains";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useAccount } from "wagmi";
 import web3 from "web3";
+import { readContract } from "@wagmi/core";
 import SearchForm from "./SearchForm";
 import ReadContract from "./ReadContract";
 import WriteContract from "./WriteContract";
@@ -29,7 +30,9 @@ const ReadWriteContract = (): JSX.Element => {
   const [proxyContractAbi, setProxyContractAbi] = useState<Array<abiItem>>([]);
   const [activeTab, setActiveTab] = useState<tabType>("read");
   const [error, setError] = useState<string>("");
-  const [ownerOnlyFunctions, setOwnerOnlyFunctions] = useState<Array<string>>([]);
+  const [ownerOnlyFunctions, setOwnerOnlyFunctions] = useState<Array<string>>(
+    []
+  );
   const [selectedChain, setSelectedChain] = useState<string>("Polygon");
 
   const { isConnected } = useAccount();
@@ -39,7 +42,12 @@ const ReadWriteContract = (): JSX.Element => {
   const changeNetwork = async () => {
     try {
       await switchNetwork({
-        chainId: selectedChain === "Polygon" ? polygon.id : polygonMumbai.id,
+        chainId:
+          selectedChain === "Polygon"
+            ? polygon.id
+            : selectedChain === "Ethereum"
+            ? mainnet.id
+            : polygonMumbai.id,
       });
     } catch (e) {
       console.log(e);
@@ -74,22 +82,75 @@ const ReadWriteContract = (): JSX.Element => {
     setContractAddress(event.target.value);
   };
 
-  const fetchImplementContract = async (proxyContract: contractAddressType) => {
-    const providerURL =
-      selectedChain === "Polygon Mumbai"
-        ? process.env.NEXT_PUBLIC_PROVIDER_URL_TESTNET
-        : process.env.NEXT_PUBLIC_PROVIDER_URL;
-    const web3Instance = new web3(
-      new web3.providers.HttpProvider(providerURL as string)
-    );
-    const storage = await web3Instance.eth.getStorageAt(
-      proxyContract as string,
-      "0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc"
-    );
-    const address = storage.replace("x000000000000000000000000", "x");
-    if (web3Instance.utils.toNumber(address)) {
-      setProxyContractAddress(address);
-      await fetchAbi(address, "proxy");
+  const fetchImplementContract = async (
+    proxyContract: contractAddressType,
+    abis: Array<abiItem>
+  ) => {
+    const proxyFunctions = [
+      "getImplementation",
+      "implementation",
+      "IMPLEMENTATION_SLOT",
+      "implementationSlot",
+    ];
+    if (abis.length > 0) {
+      let skipLoop = false;
+      await abis.every(async (item: abiItem) => {
+        if (!skipLoop && proxyFunctions.includes(item.name)) {
+          skipLoop = true;
+          const res: any = await readContract({
+            address: contractAddress as contractAddressType,
+            abi: abis,
+            functionName: item.name,
+            chainId: selectedChain === "Ethereum"
+            ? mainnet.id
+            : polygon.id
+              // selectedChain === "Polygon Mumbai"
+              //   ? polygonMumbai.id
+              //   : selectedChain === "Ethereum"
+              //   ? mainnet.id
+              //   : polygon.id,
+          });
+          const output: Array<{ type: string }> = item.outputs;
+          if (output && output[0].type === "bytes32") {
+            const providerURL = process.env.NEXT_PUBLIC_PROVIDER_URL
+              // selectedChain === "Polygon Mumbai"
+              //   ? process.env.NEXT_PUBLIC_PROVIDER_URL_TESTNET
+              //   : process.env.NEXT_PUBLIC_PROVIDER_URL;
+            const web3Instance = new web3(
+              new web3.providers.HttpProvider(providerURL as string)
+            );
+            const storage = await web3Instance.eth.getStorageAt(
+              proxyContract as string,
+              `${res}`
+            );
+            const address = storage.replace("x000000000000000000000000", "x");
+            if (web3Instance.utils.toNumber(address)) {
+              setProxyContractAddress(address);
+              await fetchAbi(address, "proxy");
+            }
+          }
+          if (output && output[0].type === "address") {
+            await fetchAbi(res, "proxy");
+          }
+        }
+      });
+    } else {
+      const providerURL = process.env.NEXT_PUBLIC_PROVIDER_URL
+        // selectedChain === "Polygon Mumbai"
+        //   ? process.env.NEXT_PUBLIC_PROVIDER_URL_TESTNET
+        //   : process.env.NEXT_PUBLIC_PROVIDER_URL;
+      const web3Instance = new web3(
+        new web3.providers.HttpProvider(providerURL as string)
+      );
+      const storage = await web3Instance.eth.getStorageAt(
+        proxyContract as string,
+        `0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc`
+      );
+      const address = storage.replace("x000000000000000000000000", "x");
+      if (web3Instance.utils.toNumber(address)) {
+        setProxyContractAddress(address);
+        await fetchAbi(address, "proxy");
+      }
     }
   };
 
@@ -99,11 +160,18 @@ const ReadWriteContract = (): JSX.Element => {
   ) => {
     try {
       if (contractAddress) {
-        const key = process.env.NEXT_PUBLIC_POLYGON_SCAN_API_KEY;
-        const baseUrl =
-          selectedChain === "Polygon Mumbai"
-            ? process.env.NEXT_PUBLIC_POLYGON_SCAN_BASE_URL_TESTNET
-            : process.env.NEXT_PUBLIC_POLYGON_SCAN_BASE_URL;
+        const key =
+          selectedChain === "Ethereum"
+            ? process.env.NEXT_PUBLIC_ETHER_SCAN_API_KEY
+            : process.env.NEXT_PUBLIC_POLYGON_SCAN_API_KEY;
+        const baseUrl = selectedChain === "Ethereum"
+        ? process.env.NEXT_PUBLIC_ETHER_SCAN_BASE_URL
+        : process.env.NEXT_PUBLIC_POLYGON_SCAN_BASE_URL;
+          // selectedChain === "Polygon Mumbai"
+          //   ? process.env.NEXT_PUBLIC_POLYGON_SCAN_BASE_URL_TESTNET
+          //   : selectedChain === "Ethereum"
+          //   ? process.env.NEXT_PUBLIC_ETHER_SCAN_BASE_URL
+          //   : process.env.NEXT_PUBLIC_POLYGON_SCAN_BASE_URL;
         const res = await fetch(
           `${baseUrl}?module=contract&action=getabi&address=${contractAddress}&apikey=${key}`
         );
@@ -117,6 +185,7 @@ const ReadWriteContract = (): JSX.Element => {
             );
             if (type === "base") {
               setContractAbi(filteredABI);
+              return filteredABI;
             } else {
               setProxyContractAbi(filteredABI);
             }
@@ -132,8 +201,11 @@ const ReadWriteContract = (): JSX.Element => {
 
   const handleSubmit = async () => {
     clearState();
-    fetchAbi(contractAddress);
-    fetchImplementContract(contractAddress as contractAddressType);
+    const abis = await fetchAbi(contractAddress);
+    fetchImplementContract(
+      contractAddress as contractAddressType,
+      abis as Array<abiItem>
+    );
     const ownerOnlyFunctions: any = await getOnlyOwnerFunctions(
       contractAddress as contractAddressType,
       selectedChain
@@ -241,10 +313,10 @@ const ReadWriteContract = (): JSX.Element => {
       )}
       {activeTab === "Admin" && (
         <>
-        <div className="pt-2 pl-4 mx-4">
+          <div className="pt-2 pl-4 mx-4">
             <ConnectButton showBalance={false} chainStatus="none" />
           </div>
-        {proxyContractAbi.length > 0 && (
+          {proxyContractAbi.length > 0 && (
             <WriteContract
               abi={proxyContractAbi}
               contractAddress={contractAddress as `0x${string}`}
@@ -255,7 +327,7 @@ const ReadWriteContract = (): JSX.Element => {
               adminOnly
             />
           )}
-        <WriteContract
+          <WriteContract
             abi={contractAbi}
             contractAddress={contractAddress as `0x${string}`}
             isConnected={isConnected}

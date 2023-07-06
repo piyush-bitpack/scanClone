@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
 import accordionStyles from "../styles/Home.module.css";
-import { readContract, writeContract } from "@wagmi/core";
-import { polygon, polygonMumbai } from "@wagmi/core/chains";
+import { readContract } from "@wagmi/core";
+import { polygon, polygonMumbai, mainnet } from "@wagmi/core/chains";
 import { abiItem } from "./ReadWriteContract";
 import humanizeString from 'humanize-string';
 import { utils } from "web3";
+import Spinner from './Spinner'
 
 type PrefetchedCardProps = {
   proxyContractAbi: Array<abiItem>;
@@ -33,19 +34,21 @@ const PrefetchedCard = ({
   contractAddress,
 }: PrefetchedCardProps): JSX.Element => {
   const [result, setResult] = useState<Array<resultDataType>>([]);
+  const [loading, setLoading] = useState<boolean>(false);
 
   const fetchResponse = async (fns: resultDataType[]) => {
     try {
+      setLoading(true)
       const response = await Promise.allSettled(
         fns.map(async (item) => {
           return readContract({
             address: contractAddress,
             abi: item.isProxy ? proxyContractAbi : contractAbi,
             functionName: item.functionName,
-            chainId:
-              selectedChain === "Polygon Mumbai"
-                ? polygonMumbai.id
-                : polygon.id,
+            chainId: selectedChain === 'Ethereum' ? mainnet.id : polygon.id
+              // selectedChain === "Polygon Mumbai"
+              //   ? polygonMumbai.id
+              //   : (selectedChain === 'Ethereum' ? mainnet.id : polygon.id),
           }).then((res) => {
             return {
               ...item,
@@ -65,9 +68,10 @@ const PrefetchedCard = ({
           results.push(item.value);
         }
       });
-      console.log(results);
       setResult(results);
+      setLoading(false)
     } catch (e) {
+      setLoading(false)
       console.log(e);
     }
   };
@@ -75,9 +79,8 @@ const PrefetchedCard = ({
   useEffect(() => {
     let readFunction: resultDataType[] = [];
     if (proxyContractAbi && proxyContractAbi.length > 0) {
-      console.log(proxyContractAbi, contractAbi);
       proxyContractAbi.forEach((item) => {
-        if (item.stateMutability === "view" && item.inputs.length === 0) {
+        if ((item.stateMutability === "view"  || item.stateMutability === "pure") && item.inputs.length === 0) {
           readFunction.push({
             functionName: item.name,
             isProxy: true,
@@ -107,6 +110,11 @@ const PrefetchedCard = ({
         <div className="w-80">Read functions without parameters</div>
         <div>Response</div>
         </div>
+        {loading ? (
+          <div className="p-5 flex justify-center">
+        <Spinner />
+        </div>
+        ) : (
         <ul>
           {result.length > 0 &&
             result.map((item, index) => (
@@ -119,6 +127,7 @@ const PrefetchedCard = ({
               </li>
             ))}
         </ul>
+        )}
       </div>
     </div>
   );
