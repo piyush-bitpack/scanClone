@@ -1,10 +1,11 @@
 import React, { useState } from "react";
+import humanizeString from 'humanize-string';
 import accordionStyles from "../styles/Home.module.css";
 import { readContract, writeContract } from "@wagmi/core";
 import { polygon, polygonMumbai } from "@wagmi/core/chains";
 import { abiItem } from "./ReadWriteContract";
 import { isEmpty } from "lodash";
-import { formatEther } from "viem";
+import { utils } from "web3";
 
 type InputOutputType = {
   internalType?: string;
@@ -21,6 +22,7 @@ type AccordionProps = {
   abi: Array<abiItem>;
   isConnected: boolean;
   selectedChain: string
+  isProxy?: boolean
 };
 
 const Accordion = ({
@@ -31,7 +33,8 @@ const Accordion = ({
   outputs,
   inputs,
   isConnected,
-  selectedChain
+  selectedChain,
+  isProxy
 }: AccordionProps): JSX.Element => {
   const [isOpen, setOpen] = useState<Boolean>(false);
   const [output, setOutput] = useState<BigInt | any>(null);
@@ -68,7 +71,7 @@ const Accordion = ({
               : polygon.id,
         });
         const convertedRate =
-          typeof rate === "bigint" ? formatEther(rate) : rate;
+          typeof rate === "bigint" ? rate.toString() : (outputs[0].type === 'bytes' ? utils.hexToAscii(rate) : rate);
         setOutput(`${convertedRate}`);
       } else if (type === "write") {
         const { hash } = await writeContract({
@@ -96,7 +99,7 @@ const Accordion = ({
         className={`${accordionStyles.cardHeader} cursor-pointer bg-light card-collapse p-0`}
         onClick={toggle}
       >
-        {functionName}
+        {humanizeString(functionName)}{isProxy && '*'}
         <span>
           {isOpen ? (
             <svg
@@ -137,11 +140,11 @@ const Accordion = ({
           {inputs.length > 0 &&
             inputs.map((item) => (
               <>
-                <label>{item?.name}</label>
+                <label>{humanizeString(item?.name)}</label>
                 <input
                   type="text"
                   className="block w-full mb-[5px] p-[5px] text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder={`${item.name} (${item?.type})`}
+                  placeholder={`${humanizeString(item.name)} (${item?.type})`}
                   onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
                     handleChange(event, item.name);
                   }}
@@ -168,7 +171,7 @@ const Accordion = ({
             <label>Response of method</label>
             <br />
             <span>
-              {output} {outputs[0].type}
+              {output} {outputs[0].type === 'bytes' ? 'string' : outputs[0].type}
             </span>
           </div>
         )}

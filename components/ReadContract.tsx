@@ -6,19 +6,19 @@ type ReadContractProps = {
   contractAddress: `0x${string}`;
   abi: Array<abiItem>;
   isConnected: boolean;
-  fetchedAbi: boolean;
   selectedChain: string
+  isProxy?: boolean
 };
 
 const ReadContract = ({
   contractAddress,
   abi,
   isConnected,
-  fetchedAbi,
   selectedChain,
+  isProxy
 }: ReadContractProps): JSX.Element => {
-  const readABI = abi.filter((item) => item.stateMutability === "view");
-  return fetchedAbi ? (
+  const readABI = abi.filter((item) => item.stateMutability === "view" && item.inputs.length > 0);
+  return (
     <div className="p-4 pt-0 mx-4">
       {readABI.length > 0 ? (
         readABI.map((item, index) => {
@@ -34,20 +34,13 @@ const ReadContract = ({
                 abi={abi}
                 isConnected={isConnected}
                 selectedChain={selectedChain}
+                isProxy={isProxy}
               />
             )
           );
         })
-      ) : (
-        <span>
-          {" "}
-          Sorry, there are no available Contract ABI methods to read. Unable to
-          read contract info.
-        </span>
-      )}
+      ) : null}
     </div>
-  ) : (
-    <></>
   );
 };
 

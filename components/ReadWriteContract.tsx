@@ -1,11 +1,14 @@
 import React, { useState, ChangeEvent, useEffect } from "react";
-import { getNetwork, switchNetwork } from '@wagmi/core'
+import { getNetwork, switchNetwork } from "@wagmi/core";
 import { polygon, polygonMumbai } from "@wagmi/core/chains";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useAccount } from "wagmi";
 import web3 from "web3";
 import SearchForm from "./SearchForm";
 import ReadContract from "./ReadContract";
 import WriteContract from "./WriteContract";
+import PrefetchedCard from "./PrefetchedCard";
+import { getOnlyOwnerFunctions } from "./getOwnerFunction";
 
 export type abiItem = {
   type: string;
@@ -15,7 +18,7 @@ export type abiItem = {
   outputs: [];
 };
 
-type tabType = "read" | "write" | "proxyRead" | "proxyWrite"
+type tabType = "read" | "write" | "Admin";
 
 type contractAddressType = `0x${string}`;
 
@@ -25,36 +28,47 @@ const ReadWriteContract = (): JSX.Element => {
   const [contractAbi, setContractAbi] = useState<Array<abiItem>>([]);
   const [proxyContractAbi, setProxyContractAbi] = useState<Array<abiItem>>([]);
   const [activeTab, setActiveTab] = useState<tabType>("read");
-  const [fetchedAbi, setFetchedAbi] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
-  const [selectedChain, setSelectedChain] = useState<string>('Polygon');
+  const [ownerOnlyFunctions, setOwnerOnlyFunctions] = useState<Array<string>>([]);
+  const [selectedChain, setSelectedChain] = useState<string>("Polygon");
 
   const { isConnected } = useAccount();
 
-  const { chain } = getNetwork()
+  const { chain } = getNetwork();
 
   const changeNetwork = async () => {
     try {
       await switchNetwork({
-        chainId: selectedChain === 'Polygon' ? polygon.id : polygonMumbai.id,
-      })
+        chainId: selectedChain === "Polygon" ? polygon.id : polygonMumbai.id,
+      });
     } catch (e) {
-      console.log(e)
+      console.log(e);
     }
-  }
+  };
 
   const clearState = () => {
-    setFetchedAbi(false)
-    setActiveTab('read');
-    setContractAbi([])
-    setProxyContractAbi([])
-  }
+    setActiveTab("read");
+    setContractAbi([]);
+    setProxyContractAbi([]);
+    setError("");
+  };
+
+  useEffect(() => {
+    const script = document.createElement("script");
+    script.src = "/index.iife.js";
+    script.async = true;
+    document.body.appendChild(script);
+
+    script.onload = () => {
+      console.log("loaded");
+    };
+  }, []);
 
   useEffect(() => {
     if (chain && chain.name !== selectedChain) {
-      changeNetwork()
+      changeNetwork();
     }
-  }, [chain, selectedChain])
+  }, [chain, selectedChain]);
 
   const handleAddress = (event: ChangeEvent<HTMLInputElement>) => {
     setContractAddress(event.target.value);
@@ -62,7 +76,7 @@ const ReadWriteContract = (): JSX.Element => {
 
   const fetchImplementContract = async (proxyContract: contractAddressType) => {
     const providerURL =
-    selectedChain === "Polygon Mumbai"
+      selectedChain === "Polygon Mumbai"
         ? process.env.NEXT_PUBLIC_PROVIDER_URL_TESTNET
         : process.env.NEXT_PUBLIC_PROVIDER_URL;
     const web3Instance = new web3(
@@ -107,7 +121,6 @@ const ReadWriteContract = (): JSX.Element => {
               setProxyContractAbi(filteredABI);
             }
           }
-          setFetchedAbi(true);
         } else {
           setError(data.result);
         }
@@ -121,6 +134,13 @@ const ReadWriteContract = (): JSX.Element => {
     clearState();
     fetchAbi(contractAddress);
     fetchImplementContract(contractAddress as contractAddressType);
+    const ownerOnlyFunctions: any = await getOnlyOwnerFunctions(
+      contractAddress as contractAddressType,
+      selectedChain
+    );
+    if (ownerOnlyFunctions.length > 0) {
+      setOwnerOnlyFunctions(ownerOnlyFunctions);
+    }
   };
 
   return (
@@ -132,6 +152,12 @@ const ReadWriteContract = (): JSX.Element => {
         selectedChain={selectedChain}
       />
       {error && <span className="px-4 m-4 text-red-700">{error}</span>}
+      <PrefetchedCard
+        proxyContractAbi={proxyContractAbi}
+        contractAbi={contractAbi}
+        selectedChain={selectedChain}
+        contractAddress={contractAddress as contractAddressType}
+      />
       <div className="flex items-center px-4 mx-4">
         <ul className="flex flex-wrap text-sm font-medium text-center text-gray-500 border-b border-gray-200">
           <li className="mr-2">
@@ -154,26 +180,16 @@ const ReadWriteContract = (): JSX.Element => {
               Write
             </button>
           </li>
-          {proxyContractAbi.length > 0 && (
+          {ownerOnlyFunctions.length > 0 && (
             <>
               <li className="mr-2">
                 <button
                   className={`text-black inline-block p-4 hover:bg-gray-50 rounded-t-lg ${
-                    activeTab === "proxyRead" ? "bg-gray-100" : ""
+                    activeTab === "Admin" ? "bg-gray-100" : ""
                   }`}
-                  onClick={() => setActiveTab("proxyRead")}
+                  onClick={() => setActiveTab("Admin")}
                 >
-                  Read as Proxy
-                </button>
-              </li>
-              <li className="mr-2">
-                <button
-                  className={`text-black inline-block p-4 rounded-t-lg hover:text-gray-600 hover:bg-gray-50 ${
-                    activeTab === "proxyWrite" ? "bg-gray-100" : ""
-                  }`}
-                  onClick={() => setActiveTab("proxyWrite")}
-                >
-                  Write as Proxy
+                  Admin Functions
                 </button>
               </li>
             </>
@@ -181,40 +197,73 @@ const ReadWriteContract = (): JSX.Element => {
         </ul>
       </div>
       {activeTab === "write" && (
-        <WriteContract
-          abi={contractAbi}
-          contractAddress={contractAddress as `0x${string}`}
-          isConnected={isConnected}
-          fetchedAbi={fetchedAbi}
-          selectedChain={selectedChain}
-        />
+        <>
+          <div className="pt-2 pl-4 mx-4">
+            <ConnectButton showBalance={false} chainStatus="none" />
+          </div>
+          {proxyContractAbi.length > 0 && (
+            <WriteContract
+              abi={proxyContractAbi}
+              contractAddress={contractAddress as `0x${string}`}
+              isConnected={isConnected}
+              selectedChain={selectedChain}
+              ownerOnlyFunctions={ownerOnlyFunctions}
+              isProxy
+            />
+          )}
+          <WriteContract
+            abi={contractAbi}
+            contractAddress={contractAddress as `0x${string}`}
+            isConnected={isConnected}
+            selectedChain={selectedChain}
+            ownerOnlyFunctions={ownerOnlyFunctions}
+          />
+        </>
       )}
       {activeTab === "read" && (
-        <ReadContract
-          abi={contractAbi}
-          contractAddress={contractAddress as `0x${string}`}
-          isConnected={isConnected}
-          fetchedAbi={fetchedAbi}
-          selectedChain={selectedChain}
-        />
+        <>
+          {proxyContractAbi.length > 0 && (
+            <ReadContract
+              abi={proxyContractAbi}
+              contractAddress={contractAddress as `0x${string}`}
+              isConnected={isConnected}
+              selectedChain={selectedChain}
+              isProxy
+            />
+          )}
+          <ReadContract
+            abi={contractAbi}
+            contractAddress={contractAddress as `0x${string}`}
+            isConnected={isConnected}
+            selectedChain={selectedChain}
+          />
+        </>
       )}
-      {activeTab === "proxyWrite" && (
+      {activeTab === "Admin" && (
+        <>
+        <div className="pt-2 pl-4 mx-4">
+            <ConnectButton showBalance={false} chainStatus="none" />
+          </div>
+        {proxyContractAbi.length > 0 && (
+            <WriteContract
+              abi={proxyContractAbi}
+              contractAddress={contractAddress as `0x${string}`}
+              isConnected={isConnected}
+              selectedChain={selectedChain}
+              ownerOnlyFunctions={ownerOnlyFunctions}
+              isProxy
+              adminOnly
+            />
+          )}
         <WriteContract
-          abi={proxyContractAbi}
-          contractAddress={proxyContractAddress as `0x${string}`}
-          isConnected={isConnected}
-          fetchedAbi={fetchedAbi}
-          selectedChain={selectedChain}
-        />
-      )}
-      {activeTab === "proxyRead" && (
-        <ReadContract
-          abi={proxyContractAbi}
-          contractAddress={proxyContractAddress as `0x${string}`}
-          isConnected={isConnected}
-          fetchedAbi={fetchedAbi}
-          selectedChain={selectedChain}
-        />
+            abi={contractAbi}
+            contractAddress={contractAddress as `0x${string}`}
+            isConnected={isConnected}
+            selectedChain={selectedChain}
+            ownerOnlyFunctions={ownerOnlyFunctions}
+            adminOnly
+          />
+        </>
       )}
     </>
   );

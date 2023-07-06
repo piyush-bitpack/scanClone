@@ -1,5 +1,4 @@
 import React from "react";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
 import Accordion from "./Accordion";
 import { abiItem } from "./ReadWriteContract";
 
@@ -7,21 +6,24 @@ type WriteContractProps = {
   contractAddress: `0x${string}`;
   abi: Array<abiItem>;
   isConnected: boolean;
-  fetchedAbi: boolean;
   selectedChain: string
+  isProxy?: boolean
+  ownerOnlyFunctions: Array<string>
+  adminOnly?: boolean
 };
 
 const WriteContract = ({
   contractAddress,
   abi,
   isConnected,
-  fetchedAbi,
   selectedChain,
+  isProxy,
+  ownerOnlyFunctions,
+  adminOnly
 }: WriteContractProps): JSX.Element => {
-  const writeAbi = abi.filter((item) => item.stateMutability !== "view");
-  return fetchedAbi ? (
-    <div className="p-4 mx-4">
-      <ConnectButton showBalance={false} chainStatus="none" />
+  const writeAbi = abi.filter((item) => item.stateMutability !== "view" && (adminOnly ? ownerOnlyFunctions.includes(item.name) : !ownerOnlyFunctions.includes(item.name)));
+  return (
+    <div className="p-4 pt-2 mx-4">
       {writeAbi.length > 0 ? (
         writeAbi?.map((item, index) => {
           return (
@@ -35,20 +37,13 @@ const WriteContract = ({
               abi={abi}
               isConnected={isConnected}
               selectedChain={selectedChain}
+              isProxy={isProxy}
             />
           );
         })
-      ) : (
-        <span>
-          {" "}
-          Sorry, there are no available Contract ABI methods to write. Unable to
-          write contract info.
-        </span>
-      )}
+      ) : null}
     </div>
-  ) : (
-    <></>
-  );
+  )
 };
 
 export default WriteContract;
