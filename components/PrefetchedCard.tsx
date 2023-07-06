@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import accordionStyles from "../styles/Home.module.css";
 import { readContract } from "@wagmi/core";
-import { polygon, polygonMumbai, mainnet } from "@wagmi/core/chains";
+import { polygon, mainnet } from "@wagmi/core/chains";
 import { abiItem } from "./ReadWriteContract";
 import humanizeString from 'humanize-string';
 import { utils } from "web3";
@@ -107,8 +107,8 @@ const PrefetchedCard = ({
     <div className="px-4 m-4">
       <div className={`${accordionStyles.card} shadow`}>
         <div className="flex border-b bg-gray-100 border-gray-300 p-2">
-        <div className="w-80">Read functions without parameters</div>
-        <div>Response</div>
+        <div className="w-[35%]">Read functions without parameters</div>
+        <div className="w-[65%]">Response</div>
         </div>
         {loading ? (
           <div className="p-5 flex justify-center">
@@ -119,11 +119,11 @@ const PrefetchedCard = ({
           {result.length > 0 &&
             result.map((item, index) => (
               <li key={index} className="flex p-3 border-b border-gray-300">
-                <div className="w-80">
+                <div className="w-[35%]">
                   {humanizeString(item.functionName)}
                   {item.isProxy ? "*" : null}:
                 </div>
-                <div>{`${item?.value}`}</div>
+                <div className="w-[65%]">{`${item?.value}`}</div>
               </li>
             ))}
         </ul>
