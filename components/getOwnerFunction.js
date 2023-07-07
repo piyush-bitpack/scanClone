@@ -20,11 +20,17 @@ function parseCode(code) {
 export async function getOnlyOwnerFunctions(address, selectedChain) {
   const contractAddress = address;
   let ownerFunctions = [];
-  const key = selectedChain === 'Ethereum' ? process.env.NEXT_PUBLIC_ETHER_SCAN_API_KEY : process.env.NEXT_PUBLIC_POLYGON_SCAN_API_KEY;
-        const baseUrl = selectedChain === 'Ethereum' ? process.env.NEXT_PUBLIC_ETHER_SCAN_BASE_URL : process.env.NEXT_PUBLIC_POLYGON_SCAN_BASE_URL
-          // selectedChain === "Polygon Mumbai"
-          //   ? process.env.NEXT_PUBLIC_POLYGON_SCAN_BASE_URL_TESTNET
-          //   : (selectedChain === 'Ethereum' ? process.env.NEXT_PUBLIC_ETHER_SCAN_BASE_URL : process.env.NEXT_PUBLIC_POLYGON_SCAN_BASE_URL);
+  const key =
+    selectedChain === "Ethereum"
+      ? process.env.NEXT_PUBLIC_ETHER_SCAN_API_KEY
+      : process.env.NEXT_PUBLIC_POLYGON_SCAN_API_KEY;
+  const baseUrl =
+    selectedChain === "Ethereum"
+      ? process.env.NEXT_PUBLIC_ETHER_SCAN_BASE_URL
+      : process.env.NEXT_PUBLIC_POLYGON_SCAN_BASE_URL;
+  // selectedChain === "Polygon Mumbai"
+  //   ? process.env.NEXT_PUBLIC_POLYGON_SCAN_BASE_URL_TESTNET
+  //   : (selectedChain === 'Ethereum' ? process.env.NEXT_PUBLIC_ETHER_SCAN_BASE_URL : process.env.NEXT_PUBLIC_POLYGON_SCAN_BASE_URL);
   const response = await fetch(
     `${baseUrl}?module=contract&action=getsourcecode&address=${contractAddress}&apikey=${key}`
   );
@@ -59,4 +65,9 @@ export async function getOnlyOwnerFunctions(address, selectedChain) {
     console.log(err, "No source code found for this contract address");
     return;
   }
+}
+
+export const formatNumber = (number) => {
+  const intl = new Intl.NumberFormat('en-US')
+  return intl.format(Number(number))
 }

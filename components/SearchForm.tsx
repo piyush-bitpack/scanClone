@@ -23,7 +23,7 @@ SearchFormProps): JSX.Element => {
         Search
       </label>
       <div className="relative flex w-full">
-        <select onChange={(e) => setSelectedChain(e.target.value)} value={selectedChain} className="text-sm text-gray-900 p-4 border border-gray-300 rounded-s-lg bg-gray-50 foucs:outline-none focus:ring-blue-500 focus:border-blue-500">
+        <select onChange={(e) => setSelectedChain(e.target.value)} value={selectedChain} className="text-sm text-gray-900 p-4 border border-gray-300 rounded-s-lg bg-gray-50 focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
           <option className="p-3" value='Polygon'>Polygon</option>
           {/* <option className="p-3" value='Polygon Mumbai'>Polygon Mumbai</option> */}
           <option className="p-3" value='Ethereum'>Ethereum</option>
@@ -31,7 +31,7 @@ SearchFormProps): JSX.Element => {
         <input
           type="search"
           id="default-search"
-          className="block w-full p-4 text-sm text-gray-900 border border-gray-300 rounded-e-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500"
+          className="block w-full p-4 text-sm text-gray-900 border border-gray-300 rounded-e-lg bg-gray-50 focus-visible:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
           placeholder="Search Contract"
           onChange={handleAddress}
         />
@@ -42,7 +42,7 @@ SearchFormProps): JSX.Element => {
         >
           <svg
             aria-hidden="true"
-            className="w-5 h-5 text-gray-500"
+            className="w-5 h-5 text-white"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"

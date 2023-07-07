@@ -230,12 +230,12 @@ const ReadWriteContract = (): JSX.Element => {
         selectedChain={selectedChain}
         contractAddress={contractAddress as contractAddressType}
       />
-      <div className="flex items-center px-4 mx-4">
-        <ul className="flex flex-wrap text-sm font-medium text-center text-gray-500 border-b border-gray-200">
+      <div className="flex items-center px-4 mx-4 dark:text-gray-400 dark:border-gray-700">
+        <ul className="flex flex-wrap text-sm font-medium text-center text-gray-500 border-b border-gray-200 dark:border-gray-700 dark:hover:border-gray-700">
           <li className="mr-2">
             <button
-              className={`text-black inline-block p-4 hover:bg-gray-50 rounded-t-lg ${
-                activeTab === "read" ? "bg-gray-100" : ""
+              className={`text-black dark:hover:bg-gray-700 dark:hover:text-white inline-block p-4 hover:bg-gray-50 rounded-t-lg ${
+                activeTab === "read" ? "bg-gray-100 dark:bg-gray-700 dark:text-white" : "dark:text-gray-400"
               }`}
               onClick={() => setActiveTab("read")}
             >
@@ -244,8 +244,8 @@ const ReadWriteContract = (): JSX.Element => {
           </li>
           <li className="mr-2">
             <button
-              className={`text-black inline-block p-4 rounded-t-lg hover:text-gray-600 hover:bg-gray-50 ${
-                activeTab === "write" ? "bg-gray-100" : ""
+              className={`text-black dark:hover:bg-gray-700 dark:hover:text-white dark:text-gray-400 inline-block p-4 rounded-t-lg hover:text-gray-600 hover:bg-gray-50 ${
+                activeTab === "write" ? "bg-gray-100 dark:bg-gray-700 dark:text-white" : "dark:text-gray-400"
               }`}
               onClick={() => setActiveTab("write")}
             >
@@ -256,8 +256,8 @@ const ReadWriteContract = (): JSX.Element => {
             <>
               <li className="mr-2">
                 <button
-                  className={`text-black inline-block p-4 hover:bg-gray-50 rounded-t-lg ${
-                    activeTab === "Admin" ? "bg-gray-100" : ""
+                  className={`text-black dark:hover:bg-gray-700 dark:hover:text-white dark:text-gray-400 inline-block p-4 hover:bg-gray-50 rounded-t-lg ${
+                    activeTab === "Admin" ? "bg-gray-100 dark:bg-gray-700 dark:text-white" : "dark:text-gray-400"
                   }`}
                   onClick={() => setActiveTab("Admin")}
                 >
