@@ -31,6 +31,7 @@ function MyApp({ Component, pageProps }: AppProps) {
     <WagmiConfig config={wagmiConfig}>
       <RainbowKitProvider chains={chains}>
         <Head>
+        <link rel="icon" href="https://uploads-ssl.webflow.com/645a621eccd7c7d1f4aa7e0d/645b4540d445416f230a17a0_merokulogoo.svg" sizes="any" />
           <title>Meroku</title>
         </Head>
         <Component {...pageProps} />
