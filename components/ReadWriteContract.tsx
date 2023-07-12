@@ -92,7 +92,7 @@ const ReadWriteContract = (): JSX.Element => {
       "IMPLEMENTATION_SLOT",
       "implementationSlot",
     ];
-    if (abis.length > 0) {
+    if (abis && abis.length > 0) {
       let skipLoop = false;
       await abis.every(async (item: abiItem) => {
         if (!skipLoop && proxyFunctions.includes(item.name)) {
@@ -160,22 +160,9 @@ const ReadWriteContract = (): JSX.Element => {
   ) => {
     try {
       if (contractAddress) {
-        const key =
-          selectedChain === "Ethereum"
-            ? process.env.NEXT_PUBLIC_ETHER_SCAN_API_KEY
-            : process.env.NEXT_PUBLIC_POLYGON_SCAN_API_KEY;
-        const baseUrl = selectedChain === "Ethereum"
-        ? process.env.NEXT_PUBLIC_ETHER_SCAN_BASE_URL
-        : process.env.NEXT_PUBLIC_POLYGON_SCAN_BASE_URL;
-          // selectedChain === "Polygon Mumbai"
-          //   ? process.env.NEXT_PUBLIC_POLYGON_SCAN_BASE_URL_TESTNET
-          //   : selectedChain === "Ethereum"
-          //   ? process.env.NEXT_PUBLIC_ETHER_SCAN_BASE_URL
-          //   : process.env.NEXT_PUBLIC_POLYGON_SCAN_BASE_URL;
-        const res = await fetch(
-          `${baseUrl}?module=contract&action=getabi&address=${contractAddress}&apikey=${key}`
-        );
-        const data = await res.json();
+        const res = await fetch(`/api/fetchAbi?selectedChain=${selectedChain}&contractAddress=${contractAddress}`);
+        const convertedRes = await res.json();
+        const data = convertedRes.data
         if (data.message === "OK") {
           const abi = data.result;
           if (abi) {

@@ -20,21 +20,12 @@ function parseCode(code) {
 export async function getOnlyOwnerFunctions(address, selectedChain) {
   const contractAddress = address;
   let ownerFunctions = [];
-  const key =
-    selectedChain === "Ethereum"
-      ? process.env.NEXT_PUBLIC_ETHER_SCAN_API_KEY
-      : process.env.NEXT_PUBLIC_POLYGON_SCAN_API_KEY;
-  const baseUrl =
-    selectedChain === "Ethereum"
-      ? process.env.NEXT_PUBLIC_ETHER_SCAN_BASE_URL
-      : process.env.NEXT_PUBLIC_POLYGON_SCAN_BASE_URL;
-  // selectedChain === "Polygon Mumbai"
-  //   ? process.env.NEXT_PUBLIC_POLYGON_SCAN_BASE_URL_TESTNET
-  //   : (selectedChain === 'Ethereum' ? process.env.NEXT_PUBLIC_ETHER_SCAN_BASE_URL : process.env.NEXT_PUBLIC_POLYGON_SCAN_BASE_URL);
+
   const response = await fetch(
-    `${baseUrl}?module=contract&action=getsourcecode&address=${contractAddress}&apikey=${key}`
+    `/api/fetchsourcecode?selectedChain=${selectedChain}&contractAddress=${contractAddress}`
   );
-  const data = await response.json();
+  const parsedResponse = await response.json();
+  const data = parsedResponse.data;
   if (data.result[0].ABI === "Contract source code not verified") {
     console.log("Contract source code not verified");
     return [];
@@ -68,6 +59,6 @@ export async function getOnlyOwnerFunctions(address, selectedChain) {
 }
 
 export const formatNumber = (number) => {
-  const intl = new Intl.NumberFormat('en-US')
-  return intl.format(Number(number))
-}
+  const intl = new Intl.NumberFormat("en-US");
+  return intl.format(Number(number));
+};

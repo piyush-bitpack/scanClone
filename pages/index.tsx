@@ -4,7 +4,7 @@ import Header from "../components/Header";
 
 const Home: NextPage = () => {
   return (
-    <div className="dark:bg-slate-800 h-screen flex justify-center max-lg:pl-[60px] overflow-auto">
+    <div className="dark:bg-slate-800 h-screen flex justify-center overflow-auto">
       <div className="xl:w-[60%]">
         <Header />
         <ReadWriteContract />
