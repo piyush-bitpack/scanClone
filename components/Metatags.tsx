@@ -29,7 +29,7 @@ const Metatags = () => {
       />
       <meta
         property="og:image"
-        content='https://scanbetter.vercel.app/images/metaImage.jpg'
+        content='/images/metaImage.jpg'
       />
 
       {/* <!-- Twitter --> */}
@@ -45,7 +45,7 @@ const Metatags = () => {
       />
       <meta
         property="twitter:image"
-        content="https://scanbetter.vercel.app/images/metaImage.jpg"
+        content="/images/metaImage.jpg"
       />
     </Head>
   );
