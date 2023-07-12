@@ -29,7 +29,7 @@ const Metatags = () => {
       />
       <meta
         property="og:image"
-        content='https://contractly.in/images/metaImage.jpg'
+        content='https://scanbetter.vercel.app/images/metaImage.jpg'
       />
 
       {/* <!-- Twitter --> */}
@@ -45,7 +45,7 @@ const Metatags = () => {
       />
       <meta
         property="twitter:image"
-        content="https://contractly.in/images/metaImage.jpg"
+        content="https://scanbetter.vercel.app/images/metaImage.jpg"
       />
     </Head>
   );
