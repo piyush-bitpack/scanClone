@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, memo } from "react";
 import Link from "next/link";
 import accordionStyles from "../styles/Home.module.css";
 import { readContract } from "@wagmi/core";
@@ -236,4 +236,4 @@ const PrefetchedCard = ({
   );
 };
 
-export default PrefetchedCard;
+export default memo(PrefetchedCard);

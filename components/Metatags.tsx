@@ -1,5 +1,4 @@
 import Head from "next/head";
-import MetaImage from '../public/images/metaImage.jpg'
 
 const Metatags = () => {
   return (
@@ -29,7 +28,7 @@ const Metatags = () => {
       />
       <meta
         property="og:image"
-        content='/images/metaImage.jpg'
+        content='https://scanbetter.vercel.app/images/metaImage.jpg'
       />
 
       {/* <!-- Twitter --> */}
@@ -45,7 +44,7 @@ const Metatags = () => {
       />
       <meta
         property="twitter:image"
-        content="/images/metaImage.jpg"
+        content="https://scanbetter.vercel.app/images/metaImage.jpg"
       />
     </Head>
   );

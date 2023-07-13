@@ -1,6 +1,5 @@
-import React, { useState, ChangeEvent, useEffect } from "react";
-import { getNetwork, switchNetwork } from "@wagmi/core";
-import { polygon, polygonMumbai, mainnet } from "@wagmi/core/chains";
+import React, { useState, useEffect } from "react";
+import { polygon, mainnet } from "@wagmi/core/chains";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useAccount } from "wagmi";
 import web3 from "web3";
@@ -23,8 +22,15 @@ type tabType = "read" | "write" | "Admin";
 
 type contractAddressType = `0x${string}`;
 
-const ReadWriteContract = (): JSX.Element => {
-  const [contractAddress, setContractAddress] = useState<string>("");
+type ReadWriteContractProps = {
+  contract?: string;
+  chainId?: number;
+};
+
+const ReadWriteContract = ({
+  contract,
+  chainId,
+}: ReadWriteContractProps): JSX.Element => {
   const [proxyContractAddress, setProxyContractAddress] = useState<string>("");
   const [contractAbi, setContractAbi] = useState<Array<abiItem>>([]);
   const [proxyContractAbi, setProxyContractAbi] = useState<Array<abiItem>>([]);
@@ -33,27 +39,8 @@ const ReadWriteContract = (): JSX.Element => {
   const [ownerOnlyFunctions, setOwnerOnlyFunctions] = useState<Array<string>>(
     []
   );
-  const [selectedChain, setSelectedChain] = useState<string>("Polygon");
-
   const { isConnected } = useAccount();
-
-  const { chain } = getNetwork();
-
-  const changeNetwork = async () => {
-    try {
-      await switchNetwork({
-        chainId:
-          selectedChain === "Polygon"
-            ? polygon.id
-            : selectedChain === "Ethereum"
-            ? mainnet.id
-            : polygonMumbai.id,
-      });
-    } catch (e) {
-      console.log(e);
-    }
-  };
-
+  const selectedChain = chainId === polygon.id ? "Polygon" : "Ethereum";
   const clearState = () => {
     setActiveTab("read");
     setContractAbi([]);
@@ -73,14 +60,10 @@ const ReadWriteContract = (): JSX.Element => {
   }, []);
 
   useEffect(() => {
-    if (chain && chain.name !== selectedChain) {
-      changeNetwork();
+    if (contract && chainId) {
+      handleSubmit(contract as contractAddressType);
     }
-  }, [chain, selectedChain]);
-
-  const handleAddress = (event: ChangeEvent<HTMLInputElement>) => {
-    setContractAddress(event.target.value);
-  };
+  }, [contract, chainId]);
 
   const fetchImplementContract = async (
     proxyContract: contractAddressType,
@@ -98,24 +81,14 @@ const ReadWriteContract = (): JSX.Element => {
         if (!skipLoop && proxyFunctions.includes(item.name)) {
           skipLoop = true;
           const res: any = await readContract({
-            address: contractAddress as contractAddressType,
+            address: contract as contractAddressType,
             abi: abis,
             functionName: item.name,
-            chainId: selectedChain === "Ethereum"
-            ? mainnet.id
-            : polygon.id
-              // selectedChain === "Polygon Mumbai"
-              //   ? polygonMumbai.id
-              //   : selectedChain === "Ethereum"
-              //   ? mainnet.id
-              //   : polygon.id,
+            chainId: selectedChain === "Ethereum" ? mainnet.id : polygon.id,
           });
           const output: Array<{ type: string }> = item.outputs;
           if (output && output[0].type === "bytes32") {
-            const providerURL = process.env.NEXT_PUBLIC_PROVIDER_URL
-              // selectedChain === "Polygon Mumbai"
-              //   ? process.env.NEXT_PUBLIC_PROVIDER_URL_TESTNET
-              //   : process.env.NEXT_PUBLIC_PROVIDER_URL;
+            const providerURL = process.env.NEXT_PUBLIC_PROVIDER_URL;
             const web3Instance = new web3(
               new web3.providers.HttpProvider(providerURL as string)
             );
@@ -135,10 +108,7 @@ const ReadWriteContract = (): JSX.Element => {
         }
       });
     } else {
-      const providerURL = process.env.NEXT_PUBLIC_PROVIDER_URL
-        // selectedChain === "Polygon Mumbai"
-        //   ? process.env.NEXT_PUBLIC_PROVIDER_URL_TESTNET
-        //   : process.env.NEXT_PUBLIC_PROVIDER_URL;
+      const providerURL = process.env.NEXT_PUBLIC_PROVIDER_URL;
       const web3Instance = new web3(
         new web3.providers.HttpProvider(providerURL as string)
       );
@@ -160,9 +130,11 @@ const ReadWriteContract = (): JSX.Element => {
   ) => {
     try {
       if (contractAddress) {
-        const res = await fetch(`/api/fetchAbi?selectedChain=${selectedChain}&contractAddress=${contractAddress}`);
+        const res = await fetch(
+          `/api/fetchAbi?selectedChain=${selectedChain}&contractAddress=${contractAddress}`
+        );
         const convertedRes = await res.json();
-        const data = convertedRes.data
+        const data = convertedRes.data;
         if (data.message === "OK") {
           const abi = data.result;
           if (abi) {
@@ -186,7 +158,9 @@ const ReadWriteContract = (): JSX.Element => {
     }
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (
+    contractAddress: contractAddressType,
+  ) => {
     clearState();
     const abis = await fetchAbi(contractAddress);
     fetchImplementContract(
@@ -197,32 +171,29 @@ const ReadWriteContract = (): JSX.Element => {
       contractAddress as contractAddressType,
       selectedChain
     );
-    if (ownerOnlyFunctions.length > 0) {
+    if (ownerOnlyFunctions && ownerOnlyFunctions.length > 0) {
       setOwnerOnlyFunctions(ownerOnlyFunctions);
     }
   };
 
   return (
     <>
-      <SearchForm
-        setSelectedChain={setSelectedChain}
-        handleAddress={handleAddress}
-        fetchAbi={handleSubmit}
-        selectedChain={selectedChain}
-      />
+      <SearchForm contract={contract} chains={selectedChain} />
       {error && <span className="px-4 m-4 text-red-700">{error}</span>}
       <PrefetchedCard
         proxyContractAbi={proxyContractAbi}
         contractAbi={contractAbi}
         selectedChain={selectedChain}
-        contractAddress={contractAddress as contractAddressType}
+        contractAddress={contract as contractAddressType}
       />
       <div className="flex items-center px-4 mx-4 dark:text-gray-400 dark:border-gray-700">
         <ul className="flex flex-wrap text-sm font-medium text-center text-gray-500 border-b border-gray-200 dark:border-gray-700 dark:hover:border-gray-700">
           <li className="mr-2">
             <button
               className={`text-black dark:hover:bg-gray-700 dark:hover:text-white inline-block p-4 hover:bg-gray-50 rounded-t-lg ${
-                activeTab === "read" ? "bg-gray-100 dark:bg-gray-700 dark:text-white" : "dark:text-gray-400"
+                activeTab === "read"
+                  ? "bg-gray-100 dark:bg-gray-700 dark:text-white"
+                  : "dark:text-gray-400"
               }`}
               onClick={() => setActiveTab("read")}
             >
@@ -232,7 +203,9 @@ const ReadWriteContract = (): JSX.Element => {
           <li className="mr-2">
             <button
               className={`text-black dark:hover:bg-gray-700 dark:hover:text-white dark:text-gray-400 inline-block p-4 rounded-t-lg hover:text-gray-600 hover:bg-gray-50 ${
-                activeTab === "write" ? "bg-gray-100 dark:bg-gray-700 dark:text-white" : "dark:text-gray-400"
+                activeTab === "write"
+                  ? "bg-gray-100 dark:bg-gray-700 dark:text-white"
+                  : "dark:text-gray-400"
               }`}
               onClick={() => setActiveTab("write")}
             >
@@ -244,7 +217,9 @@ const ReadWriteContract = (): JSX.Element => {
               <li className="mr-2">
                 <button
                   className={`text-black dark:hover:bg-gray-700 dark:hover:text-white dark:text-gray-400 inline-block p-4 hover:bg-gray-50 rounded-t-lg ${
-                    activeTab === "Admin" ? "bg-gray-100 dark:bg-gray-700 dark:text-white" : "dark:text-gray-400"
+                    activeTab === "Admin"
+                      ? "bg-gray-100 dark:bg-gray-700 dark:text-white"
+                      : "dark:text-gray-400"
                   }`}
                   onClick={() => setActiveTab("Admin")}
                 >
@@ -263,7 +238,7 @@ const ReadWriteContract = (): JSX.Element => {
           {proxyContractAbi.length > 0 && (
             <WriteContract
               abi={proxyContractAbi}
-              contractAddress={contractAddress as `0x${string}`}
+              contractAddress={contract as `0x${string}`}
               isConnected={isConnected}
               selectedChain={selectedChain}
               ownerOnlyFunctions={ownerOnlyFunctions}
@@ -272,7 +247,7 @@ const ReadWriteContract = (): JSX.Element => {
           )}
           <WriteContract
             abi={contractAbi}
-            contractAddress={contractAddress as `0x${string}`}
+            contractAddress={contract as `0x${string}`}
             isConnected={isConnected}
             selectedChain={selectedChain}
             ownerOnlyFunctions={ownerOnlyFunctions}
@@ -284,7 +259,7 @@ const ReadWriteContract = (): JSX.Element => {
           {proxyContractAbi.length > 0 && (
             <ReadContract
               abi={proxyContractAbi}
-              contractAddress={contractAddress as `0x${string}`}
+              contractAddress={contract as `0x${string}`}
               isConnected={isConnected}
               selectedChain={selectedChain}
               isProxy
@@ -292,7 +267,7 @@ const ReadWriteContract = (): JSX.Element => {
           )}
           <ReadContract
             abi={contractAbi}
-            contractAddress={contractAddress as `0x${string}`}
+            contractAddress={contract as `0x${string}`}
             isConnected={isConnected}
             selectedChain={selectedChain}
           />
@@ -306,7 +281,7 @@ const ReadWriteContract = (): JSX.Element => {
           {proxyContractAbi.length > 0 && (
             <WriteContract
               abi={proxyContractAbi}
-              contractAddress={contractAddress as `0x${string}`}
+              contractAddress={contract as `0x${string}`}
               isConnected={isConnected}
               selectedChain={selectedChain}
               ownerOnlyFunctions={ownerOnlyFunctions}
@@ -316,7 +291,7 @@ const ReadWriteContract = (): JSX.Element => {
           )}
           <WriteContract
             abi={contractAbi}
-            contractAddress={contractAddress as `0x${string}`}
+            contractAddress={contract as `0x${string}`}
             isConnected={isConnected}
             selectedChain={selectedChain}
             ownerOnlyFunctions={ownerOnlyFunctions}

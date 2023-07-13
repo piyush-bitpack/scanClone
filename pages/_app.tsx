@@ -1,6 +1,6 @@
 import { getDefaultWallets, RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import type { AppProps } from "next/app";
-import Metatags from "../components/Metatags";
+import Layout from '../components/Layout'
 import { configureChains, createConfig, WagmiConfig } from "wagmi";
 import { polygon, mainnet } from "wagmi/chains";
 import { publicProvider } from "wagmi/providers/public";
@@ -30,8 +30,9 @@ function MyApp({ Component, pageProps }: AppProps) {
   return (
     <WagmiConfig config={wagmiConfig}>
       <RainbowKitProvider chains={chains}>
-       <Metatags />
-        <Component {...pageProps} />
+      <Layout>
+      <Component {...pageProps} />
+      </Layout>
       </RainbowKitProvider>
     </WagmiConfig>
   );
