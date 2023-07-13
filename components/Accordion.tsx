@@ -62,9 +62,10 @@ const Accordion = ({
 
   const handleSubmit = async () => {
     try {
-      const arguements = !isEmpty(values)
-        ? Object.keys(values).map((key) => values[key])
-        : [];
+      setError(null)
+      const arguements = !isEmpty(values) && inputs ?  inputs.map(item => {
+        return values[item.name] && values[item.name]
+      }).filter(val => val) : []
       if (type === "read") {
         const rate: any = await readContract({
           address: contractAddress,
@@ -72,9 +73,6 @@ const Accordion = ({
           functionName: functionName,
           args: arguements,
           chainId: selectedChain === 'Ethereum' ? mainnet.id : polygon.id
-            // selectedChain === "Polygon Mumbai"
-            //   ? polygonMumbai.id
-            //   : (selectedChain === 'Ethereum' ? mainnet.id : polygon.id),
         });
         const convertedRate =
           typeof rate === "bigint" ? rate.toString() : (outputs[0].type === 'bytes' ? utils.hexToAscii(rate) : rate);
@@ -88,8 +86,6 @@ const Accordion = ({
           value: stateMutability === 'payable' ? parseGwei(payableAmount) : undefined
         });
         const url = selectedChain === 'Ethereum' ? `https://etherscan.io/tx/${hash}` : `https://polygonscan.com/tx/${hash}`
-        // "Polygon Mumbai"
-        //     ? `https://mumbai.polygonscan.com/tx/${hash}` : ();
         setOutput(url);
       }
       setError(null);
