@@ -62,3 +62,11 @@ export const formatNumber = (number) => {
   const intl = new Intl.NumberFormat("en-US");
   return intl.format(Number(number));
 };
+
+export const convertObjectToString = (value) => {
+  let outputString = ''
+  Object.keys(value).forEach(key => {
+    outputString = outputString + `, ${value[key]}`
+  })
+  return outputString.replace(', ', '')
+}

@@ -10,8 +10,8 @@ export default async function fetchAbi(
 
   const key =
         selectedChain === "Ethereum"
-          ? process.env.NEXT_PUBLIC_ETHER_SCAN_API_KEY
-          : process.env.NEXT_PUBLIC_POLYGON_SCAN_API_KEY;
+          ? process.env.ETHER_SCAN_API_KEY
+          : process.env.POLYGON_SCAN_API_KEY;
       const baseUrl =
         selectedChain === "Ethereum"
           ? process.env.NEXT_PUBLIC_ETHER_SCAN_BASE_URL

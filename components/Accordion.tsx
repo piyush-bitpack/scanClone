@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import humanizeString from 'humanize-string';
+import humanizeString from "humanize-string";
 import accordionStyles from "../styles/Home.module.css";
 import { readContract, writeContract } from "@wagmi/core";
 import { polygon, mainnet } from "@wagmi/core/chains";
-import { formatNumber } from "./getOwnerFunction";
+import { formatNumber, convertObjectToString } from "./getOwnerFunction";
 import { abiItem } from "./ReadWriteContract";
 import { isEmpty } from "lodash";
 import { utils } from "web3";
@@ -23,9 +23,9 @@ type AccordionProps = {
   contractAddress: `0x${string}`;
   abi: Array<abiItem>;
   isConnected: boolean;
-  selectedChain: string
-  isProxy?: boolean
-  stateMutability?: string
+  selectedChain: string;
+  isProxy?: boolean;
+  stateMutability?: string;
 };
 
 const Accordion = ({
@@ -38,14 +38,21 @@ const Accordion = ({
   isConnected,
   selectedChain,
   isProxy,
-  stateMutability
+  stateMutability,
 }: AccordionProps): JSX.Element => {
   const [isOpen, setOpen] = useState<Boolean>(false);
   const [output, setOutput] = useState<BigInt | any>(null);
   const [values, setValues] = useState<{ [key: string]: any }>({});
-  const [payableAmount, setPayableAmount] = useState<any>('');
+  const [payableAmount, setPayableAmount] = useState<any>("");
   const [error, setError] = useState(null);
-  const numberFormatUnits = ['uint256', 'uint128', 'uint64', 'uint32', 'number', 'bigint']
+  const numberFormatUnits = [
+    "uint256",
+    "uint128",
+    "uint64",
+    "uint32",
+    "number",
+    "bigint",
+  ];
 
   const toggle = () => {
     setOpen((isOpen) => !isOpen);
@@ -62,20 +69,31 @@ const Accordion = ({
 
   const handleSubmit = async () => {
     try {
-      setError(null)
-      const arguements = !isEmpty(values) && inputs ?  inputs.map(item => {
-        return values[item.name] && values[item.name]
-      }).filter(val => val) : []
+      setError(null);
+      const arguements =
+        !isEmpty(values) && inputs
+          ? inputs
+              .map((item) => {
+                return values[item.name] && values[item.name];
+              })
+              .filter((val) => val)
+          : [];
       if (type === "read") {
         const rate: any = await readContract({
           address: contractAddress,
           abi: abi,
           functionName: functionName,
           args: arguements,
-          chainId: selectedChain === 'Ethereum' ? mainnet.id : polygon.id
+          chainId: selectedChain === "Ethereum" ? mainnet.id : polygon.id,
         });
         const convertedRate =
-          typeof rate === "bigint" ? rate.toString() : (outputs[0].type === 'bytes' ? utils.hexToAscii(rate) : rate);
+          typeof rate === "bigint"
+            ? rate.toString()
+            : outputs[0].type === "bytes"
+            ? utils.hexToAscii(rate)
+            : typeof rate === "object"
+            ? convertObjectToString(rate)
+            : rate;
         setOutput(`${convertedRate}`);
       } else if (type === "write") {
         const { hash } = await writeContract({
@@ -83,9 +101,15 @@ const Accordion = ({
           abi: abi,
           functionName: functionName,
           args: arguements,
-          value: stateMutability === 'payable' ? parseGwei(payableAmount) : undefined
+          value:
+            stateMutability === "payable"
+              ? parseGwei(payableAmount)
+              : undefined,
         });
-        const url = selectedChain === 'Ethereum' ? `https://etherscan.io/tx/${hash}` : `https://polygonscan.com/tx/${hash}`
+        const url =
+          selectedChain === "Ethereum"
+            ? `https://etherscan.io/tx/${hash}`
+            : `https://polygonscan.com/tx/${hash}`;
         setOutput(url);
       }
       setError(null);
@@ -96,12 +120,15 @@ const Accordion = ({
   };
 
   return (
-    <div className={`${accordionStyles.card} dark:!border-gray-700 dark:bg-gray-800 shadow-none my-3`}>
+    <div
+      className={`${accordionStyles.card} dark:!border-gray-700 dark:bg-gray-800 shadow-none my-3`}
+    >
       <div
         className={`${accordionStyles.cardHeader} dark:!bg-gray-800 dark:text-white cursor-pointer bg-light card-collapse p-0`}
         onClick={toggle}
       >
-        {humanizeString(functionName)}{isProxy && '*'}
+        {humanizeString(functionName)}
+        {isProxy && "*"}
         <span>
           {isOpen ? (
             <svg
@@ -139,23 +166,29 @@ const Accordion = ({
         }`}
       >
         <div className="p-3">
-          {stateMutability === 'payable' && (
+          {stateMutability === "payable" && (
             <>
-            <label className="dark:text-white">{humanizeString(functionName)}</label>
-            <input
-              type="text"
-              className="block w-full mb-[5px] p-[5px] text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-600 dark:border-gray-700 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-              placeholder={`payable Amount (${selectedChain === 'Ethereum' ? 'Eth' : 'matic'})`}
-              onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-                setPayableAmount(event);
-              }}
-            />
-          </>
+              <label className="dark:text-white">
+                {humanizeString(functionName)}
+              </label>
+              <input
+                type="text"
+                className="block w-full mb-[5px] p-[5px] text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-600 dark:border-gray-700 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                placeholder={`payable Amount (${
+                  selectedChain === "Ethereum" ? "Eth" : "matic"
+                })`}
+                onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                  setPayableAmount(event);
+                }}
+              />
+            </>
           )}
           {inputs.length > 0 &&
             inputs.map((item) => (
               <>
-                <label className="dark:text-white">{humanizeString(item?.name)}</label>
+                <label className="dark:text-white">
+                  {humanizeString(item?.name)}
+                </label>
                 <input
                   type="text"
                   className="block w-full mb-[5px] p-[5px] text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus-visible:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-500 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
@@ -186,7 +219,10 @@ const Accordion = ({
             <label>Response of method</label>
             <br />
             <span>
-              {numberFormatUnits.includes(outputs[0].type) ? formatNumber(output) : output} {outputs[0].type === 'bytes' ? 'string' : outputs[0].type}
+              {numberFormatUnits.includes(outputs[0].type)
+                ? formatNumber(output)
+                : output}{" "}
+              {outputs[0].type === "bytes" ? "string" : outputs[0].type}
             </span>
           </div>
         )}

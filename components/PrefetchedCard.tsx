@@ -5,7 +5,7 @@ import { readContract } from "@wagmi/core";
 import { polygon, mainnet } from "@wagmi/core/chains";
 import { abiItem } from "./ReadWriteContract";
 import humanizeString from "humanize-string";
-import { formatNumber } from "./getOwnerFunction";
+import { formatNumber, convertObjectToString } from "./getOwnerFunction";
 import { utils } from "web3";
 import Spinner from "./Spinner";
 
@@ -86,6 +86,8 @@ const PrefetchedCard = ({
                   ? res.toString()
                   : item.output[0].type === "bytes"
                   ? utils.hexToAscii(res as string)
+                  : typeof res === "object"
+                  ? convertObjectToString(res)
                   : res,
             };
           });

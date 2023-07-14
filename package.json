@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@datadog/browser-rum": "^4.45.0",
     "@rainbow-me/rainbowkit": "^1.0.2",
     "@solidity-parser/parser": "^0.16.0",
     "abitype": "^0.8.11",
