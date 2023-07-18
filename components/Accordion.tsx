@@ -219,7 +219,7 @@ const Accordion = ({
             <label>Response of method</label>
             <br />
             <span>
-              {numberFormatUnits.includes(outputs[0].type)
+              {numberFormatUnits.includes(outputs[0].type) && output.length === 1
                 ? formatNumber(output)
                 : output}{" "}
               {outputs[0].type === "bytes" ? "string" : outputs[0].type}

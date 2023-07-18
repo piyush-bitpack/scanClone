@@ -224,7 +224,7 @@ const PrefetchedCard = ({
                       {item.isProxy ? "*" : null}:
                     </div>
                     <div className="w-[55%]">{`${
-                      numberFormatUnits.includes(item.output[0].type)
+                      numberFormatUnits.includes(item.output[0].type) && item.output.length === 1
                         ? formatNumber(item?.value)
                         : item?.value
                     }`}</div>
